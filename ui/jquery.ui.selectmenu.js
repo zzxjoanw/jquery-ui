@@ -30,6 +30,7 @@ $.widget( "ui.selectmenu", {
 			collision: "none"
 		},
 		width: null,
+		nativeMenu: false,
 
 		// callbacks
 		change: null,
@@ -43,12 +44,14 @@ $.widget( "ui.selectmenu", {
 		var selectmenuId = this.element.uniqueId().attr( "id" );
 		this.ids = {
 			element: selectmenuId,
-			button: selectmenuId + "-button",
 			menu: selectmenuId + "-menu"
 		};
 
 		this._drawButton();
-		this._drawMenu();
+
+		if ( !this.options.nativeMenu ) {
+			this._drawMenu();
+		}
 
 		if ( this.options.disabled ) {
 			this.disable();
@@ -56,31 +59,20 @@ $.widget( "ui.selectmenu", {
 	},
 
 	_drawButton: function() {
-		var that = this,
-			tabindex = this.element.attr( "tabindex" );
-
+		var that = this;
+				
 		// Associate existing label with the new button
-		this.label = $( "label[for='" + this.ids.element + "']" ).attr( "for", this.ids.button );
-		this._on( this.label, {
-			click: function( event ) {
-				this.button.focus();
-				event.preventDefault();
-			}
-		});
-
-		// Hide original select element
-		this.element.hide();
+		// this.label = $( "label[for='" + this.ids.element + "']" );
+		// this._on( this.label, {
+			// click: function( event ) {
+				// this.element.focus();
+				// event.preventDefault();
+			// }
+		// });
 
 		// Create button
 		this.button = $( "<span>", {
 			"class": "ui-selectmenu-button ui-widget ui-state-default ui-corner-all",
-			tabindex: tabindex || this.options.disabled ? -1 : 0,
-			id: this.ids.button,
-			role: "combobox",
-			"aria-expanded": "false",
-			"aria-autocomplete": "list",
-			"aria-owns": this.ids.menu,
-			"aria-haspopup": "true"
 		})
 		.insertAfter( this.element );
 
@@ -96,11 +88,21 @@ $.widget( "ui.selectmenu", {
 		this._setText( this.buttonText, this.element.find( "option:selected" ).text() );
 		this._setOption( "width", this.options.width );
 
-		this._on( this.button, this._buttonEvents );
-		this.button.one( "focusin", function() {
+		this.element
+			.attr({
+				role: "combobox",
+				"aria-expanded": "false",
+				"aria-autocomplete": "list",
+				"aria-haspopup": "true"
+			})
+			.appendTo( this.button );
+
+		this._on( this.element, this._elementEvents );
+		this.element.one( "focusin", function() {
 			// Delay rendering the menu items until the button receives focus
-			that._refreshMenu();
+			that._refresh();
 		});
+
 		this._hoverable( this.button );
 		this._focusable( this.button );
 	},
@@ -108,10 +110,12 @@ $.widget( "ui.selectmenu", {
 	_drawMenu: function() {
 		var that = this;
 
+		this.element.attr( "aria-owns", this.ids.menu );
+
 		// Create menu
 		this.menu = $( "<ul>", {
 			"aria-hidden": "true",
-			"aria-labelledby": this.ids.button,
+			"aria-labelledby": this.ids.element,
 			id: this.ids.menu
 		});
 
@@ -141,7 +145,7 @@ $.widget( "ui.selectmenu", {
 				}
 				that.focusIndex = item.index;
 
-				that.button.attr( "aria-activedescendant",
+				that.element.attr( "aria-activedescendant",
 					that.menuItems.eq( item.index ).attr( "id" ) );
 			}
 		})
@@ -162,31 +166,33 @@ $.widget( "ui.selectmenu", {
 	},
 
 	refresh: function() {
-		this._refreshMenu();
-		this._setText( this.buttonText, this._getSelectedItem().text() );
+		this._refresh();
+		this._setText( this.buttonText, this.items[ this.element[ 0 ].selectedIndex ].label );
 	},
 
-	_refreshMenu: function() {
-		this.menu.empty();
-
-		var item,
-			options = this.element.find( "option" );
+	_refresh: function() {
+		var options = this.element.find( "option" ),
+			item;			
 
 		if ( !options.length ) {
 			return;
 		}
 
 		this._readOptions( options );
-		this._renderMenu( this.menu, this.items );
 
-		this.menuInstance.refresh();
-		this.menuItems = this.menu.find( "li" ).not( ".ui-selectmenu-optgroup" );
+		if ( !this.options.nativeMenu ) {
+			this.menu.empty();
+			this._renderMenu( this.menu, this.items );
 
-		item = this._getSelectedItem();
+			this.menuInstance.refresh();
+			this.menuItems = this.menu.find( "li" ).not( ".ui-selectmenu-optgroup" );
 
-		// Update the menu to have the correct item focused
-		this.menuInstance.focus( null, item );
-		this._setAria( item.data( "ui-selectmenu-item" ) );
+			item = this._getSelectedItem();
+
+			// Update the menu to have the correct item focused
+			this.menuInstance.focus( null, item );
+			this._setAria( item.data( "ui-selectmenu-item" ) );
+		}
 
 		// Set disabled state
 		this._setOption( "disabled", this.element.prop( "disabled" ) );
@@ -197,9 +203,21 @@ $.widget( "ui.selectmenu", {
 			return;
 		}
 
+		this.isOpen = true;
+		this._toggleAttr();
+		this._on( this.document, this._documentClick );
+
+		if ( !this.options.nativeMenu ) {
+			this._openMenu();
+		}
+
+		this._trigger( "open", event );
+	},
+
+	_openMenu: function( event ) {
 		// If this is the first time the menu is being opened, render the items
 		if ( !this.menuItems ) {
-			this._refreshMenu();
+			this._refresh();
 		} else {
 			// TODO: Why is this necessary?
 			// Shouldn't the underlying menu always have accurate state?
@@ -208,14 +226,8 @@ $.widget( "ui.selectmenu", {
 			this.menuItems.eq( this.element[ 0 ].selectedIndex ).addClass( "ui-state-active" );
 		}
 
-		this.isOpen = true;
-		this._toggleAttr();
 		this._resizeMenu();
 		this._position();
-
-		this._on( this.document, this._documentClick );
-
-		this._trigger( "open", event );
 	},
 
 	_position: function() {
@@ -327,70 +339,85 @@ $.widget( "ui.selectmenu", {
 
 	_documentClick: {
 		mousedown: function( event ) {
-			if ( this.isOpen && !$( event.target ).closest( "li.ui-state-disabled, li.ui-selectmenu-optgroup, li.ui-menu-item, #" + this.ids.button ).length ) {
+			if ( this.isOpen && !$( event.target ).closest( ".ui-selectmenu-menu, #" + this.ids.element ).length ) {
 				this.close( event );
 			}
 		}
 	},
 
-	_buttonEvents: {
-		click: "_toggle",
-		keydown: function( event ) {
-			var preventDefault = true;
-			switch ( event.keyCode ) {
-				case $.ui.keyCode.TAB:
-				case $.ui.keyCode.ESCAPE:
-					this.close( event );
-					preventDefault = false;
-					break;
-				case $.ui.keyCode.ENTER:
-					if ( this.isOpen ) {
-						this._selectMenu( event );
-					}
-					break;
-				case $.ui.keyCode.UP:
-					if ( event.altKey ) {
-						this._toggle( event );
-					} else {
-						this._move( "prev", event );
-					}
-					break;
-				case $.ui.keyCode.DOWN:
-					if ( event.altKey ) {
-						this._toggle( event );
-					} else {
-						this._move( "next", event );
-					}
-					break;
-				case $.ui.keyCode.SPACE:
-					if ( this.isOpen ) {
-						this._selectMenu( event );
-					} else {
-						this._toggle( event );
-					}
-					break;
-				case $.ui.keyCode.LEFT:
-					this._move( "prev", event );
-					break;
-				case $.ui.keyCode.RIGHT:
-					this._move( "next", event );
-					break;
-				case $.ui.keyCode.HOME:
-				case $.ui.keyCode.PAGE_UP:
-					this._move( "first", event );
-					break;
-				case $.ui.keyCode.END:
-				case $.ui.keyCode.PAGE_DOWN:
-					this._move( "last", event );
-					break;
-				default:
-					this.menu.trigger( event );
-					preventDefault = false;
-			}
-
-			if ( preventDefault ) {
+	_elementEvents: {
+		mousedown: function( event ) {
+			this._toggle( event );
+			if ( !this.options.nativeMenu ) {
 				event.preventDefault();
 			}
+		},
+		change: function( event ) {
+			this._select( this.items[ this.element[ 0 ].selectedIndex ], event );
+		},
+		keydown: function( event ) {
+			if ( !this.options.nativeMenu ) {
+				this._buttonEvent( event );
+			}
+		}
+	},
+
+	_buttonEvent: function ( event ){
+		var preventDefault = true;
+
+		switch ( event.keyCode ) {
+			case $.ui.keyCode.TAB:
+			case $.ui.keyCode.ESCAPE:
+				this.close( event );
+				preventDefault = false;
+				break;
+			case $.ui.keyCode.ENTER:
+				if ( this.isOpen ) {
+					this._selectMenu( event );
+				}
+				break;
+			case $.ui.keyCode.UP:
+				if ( event.altKey ) {
+					this._toggle( event );
+				} else {
+					this._move( "prev", event );
+				}
+				break;
+			case $.ui.keyCode.DOWN:
+				if ( event.altKey ) {
+					this._toggle( event );
+				} else {
+					this._move( "next", event );
+				}
+				break;
+			case $.ui.keyCode.SPACE:
+				if ( this.isOpen ) {
+					this._selectMenu( event );
+				} else {
+					this._toggle( event );
+				}
+				break;
+			case $.ui.keyCode.LEFT:
+				this._move( "prev", event );
+				break;
+			case $.ui.keyCode.RIGHT:
+				this._move( "next", event );
+				break;
+			case $.ui.keyCode.HOME:
+			case $.ui.keyCode.PAGE_UP:
+				this._move( "first", event );
+				break;
+			case $.ui.keyCode.END:
+			case $.ui.keyCode.PAGE_DOWN:
+				this._move( "last", event );
+				break;
+			default:
+				this.menu.trigger( event );
+				preventDefault = false;
+		}
+
+		if ( preventDefault ) {
+			event.preventDefault();
 		}
 	},
 
@@ -403,10 +430,13 @@ $.widget( "ui.selectmenu", {
 	_select: function( item, event ) {
 		var oldIndex = this.element[ 0 ].selectedIndex;
 
-		// Change native select element
-		this.element[ 0 ].selectedIndex = item.index;
+		if ( !this.options.nativeMenu ) {
+			// Change native select element
+			this.element[ 0 ].selectedIndex = item.index;
+			this._setAria( item );
+		}
+
 		this._setText( this.buttonText, item.label );
-		this._setAria( item );
 		this._trigger( "select", event, { item: item } );
 
 		if ( item.index !== oldIndex ) {
@@ -419,7 +449,7 @@ $.widget( "ui.selectmenu", {
 	_setAria: function( item ) {
 		var id = this.menuItems.eq( item.index ).attr( "id" );
 
-		this.button.attr({
+		this.element.attr({
 			"aria-labelledby": id,
 			"aria-activedescendant": id
 		});
@@ -439,18 +469,14 @@ $.widget( "ui.selectmenu", {
 			this.menuWrap.appendTo( this._appendTo() );
 		}
 		if ( key === "disabled" ) {
-			this.menuInstance.option( "disabled", value );
-			this.button
-				.toggleClass( "ui-state-disabled", value )
-				.attr( "aria-disabled", value );
-
-			this.element.prop( "disabled", value );
-			if ( value ) {
-				this.button.attr( "tabindex", -1 );
-				this.close();
-			} else {
-				this.button.attr( "tabindex", 0 );
+			if ( !this.options.nativeMenu ) {
+				this.menuInstance.option( "disabled", value );
 			}
+			this.button.toggleClass( "ui-state-disabled", value );
+
+			this.element
+				.attr( "aria-disabled", value )
+				.prop( "disabled", value );
 		}
 		if ( key === "width" ) {
 			if ( !value ) {
@@ -481,12 +507,15 @@ $.widget( "ui.selectmenu", {
 	},
 
 	_toggleAttr: function(){
+		this.element.attr( "aria-expanded", this.isOpen );
 		this.button
 			.toggleClass( "ui-corner-top", this.isOpen )
 			.toggleClass( "ui-corner-all", !this.isOpen );
-		this.menuWrap.toggleClass( "ui-selectmenu-open", this.isOpen );
-		this.menu.attr( "aria-hidden", !this.isOpen );
-		this.button.attr( "aria-expanded", this.isOpen );
+
+		if ( !this.options.nativeMenu ) {
+			this.menuWrap.toggleClass( "ui-selectmenu-open", this.isOpen );
+			this.menu.attr( "aria-hidden", !this.isOpen );
+		}
 	},
 
 	_resizeMenu: function() {
@@ -518,11 +547,11 @@ $.widget( "ui.selectmenu", {
 	},
 
 	_destroy: function() {
-		this.menuWrap.remove();
-		this.button.remove();
-		this.element.show();
 		this.element.removeUniqueId();
-		this.label.attr( "for", this.ids.element );
+		this.element.before( this.button );
+		this._off( this.label );
+		this.button.remove();
+		this.menuWrap.remove();
 	}
 });
 

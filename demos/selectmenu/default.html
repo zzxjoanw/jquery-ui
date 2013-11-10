@@ -13,9 +13,13 @@
 	<link rel="stylesheet" href="../demos.css">
 	<script>
 	$(function() {
-		$( "#speed" ).selectmenu();
+		$( "#speed" ).selectmenu({		
+			nativeMenu: true
+		});
 
-		$( "#files" ).selectmenu();
+		$( "#files" ).selectmenu({		
+			nativeMenu: true
+		});
 
 		$( "#number" )
 			.selectmenu()
