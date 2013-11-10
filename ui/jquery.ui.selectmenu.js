@@ -62,13 +62,15 @@ $.widget( "ui.selectmenu", {
 		var that = this;
 				
 		// Associate existing label with the new button
-		// this.label = $( "label[for='" + this.ids.element + "']" );
-		// this._on( this.label, {
-			// click: function( event ) {
-				// this.element.focus();
-				// event.preventDefault();
-			// }
-		// });
+		this.label = $( "label[for='" + this.ids.element + "']" );
+		this._on( this.label, {
+			click: function( event ) {
+				if ( !this.options.nativeMenu ) {
+					this.open();
+					event.preventDefault();
+				}
+			}
+		});
 
 		// Create button
 		this.button = $( "<span>", {
