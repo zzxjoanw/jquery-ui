@@ -132,8 +132,19 @@ $.widget( "ui.selectmenu", {
 		this.menuInstance = this.menu.menu({
 			role: "listbox",
 			select: function( event, ui ) {
+				var item = ui.item.data( "ui-selectmenu-item" ),
+					oldIndex = that.element[ 0 ].selectedIndex;
+												
+				// Change native select element
+				that.element[ 0 ].selectedIndex = item.index;
+						
 				event.preventDefault();
-				that._select( ui.item.data( "ui-selectmenu-item" ), event );
+				that._select( item, event );				
+				if ( item.index !== oldIndex ) {
+					that._trigger( "change", event, { item: item } );
+				}			
+		
+				that.close( event );
 			},
 			focus: function( event, ui ) {
 				var item = ui.item.data( "ui-selectmenu-item" );
@@ -355,7 +366,10 @@ $.widget( "ui.selectmenu", {
 			}
 		},
 		change: function( event ) {
-			this._select( this.items[ this.element[ 0 ].selectedIndex ], event );
+			var item = this.items[ this.element[ 0 ].selectedIndex ];
+			
+			this._select( item, event );
+			this._trigger( "change", event, { item: item } );
 		},
 		keydown: function( event ) {
 			if ( !this.options.nativeMenu ) {
@@ -430,22 +444,12 @@ $.widget( "ui.selectmenu", {
 	},
 
 	_select: function( item, event ) {
-		var oldIndex = this.element[ 0 ].selectedIndex;
-
-		if ( !this.options.nativeMenu ) {
-			// Change native select element
-			this.element[ 0 ].selectedIndex = item.index;
-			this._setAria( item );
-		}
-
 		this._setText( this.buttonText, item.label );
 		this._trigger( "select", event, { item: item } );
 
-		if ( item.index !== oldIndex ) {
-			this._trigger( "change", event, { item: item } );
+		if ( !this.options.nativeMenu ) {
+			this._setAria( item );
 		}
-
-		this.close( event );
 	},
 
 	_setAria: function( item ) {
@@ -510,11 +514,11 @@ $.widget( "ui.selectmenu", {
 
 	_toggleAttr: function(){
 		this.element.attr( "aria-expanded", this.isOpen );
-		this.button
-			.toggleClass( "ui-corner-top", this.isOpen )
-			.toggleClass( "ui-corner-all", !this.isOpen );
 
 		if ( !this.options.nativeMenu ) {
+			this.button
+				.toggleClass( "ui-corner-top", this.isOpen )
+				.toggleClass( "ui-corner-all", !this.isOpen );
 			this.menuWrap.toggleClass( "ui-selectmenu-open", this.isOpen );
 			this.menu.attr( "aria-hidden", !this.isOpen );
 		}
