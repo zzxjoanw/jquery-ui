@@ -60,7 +60,7 @@ $.widget( "ui.selectmenu", {
 
 	_drawButton: function() {
 		var that = this;
-				
+
 		// Associate existing label with the new button
 		this.label = $( "label[for='" + this.ids.element + "']" );
 		this._on( this.label, {
@@ -134,16 +134,16 @@ $.widget( "ui.selectmenu", {
 			select: function( event, ui ) {
 				var item = ui.item.data( "ui-selectmenu-item" ),
 					oldIndex = that.element[ 0 ].selectedIndex;
-												
+
 				// Change native select element
 				that.element[ 0 ].selectedIndex = item.index;
-						
+
 				event.preventDefault();
-				that._select( item, event );				
+				that._select( item, event );
 				if ( item.index !== oldIndex ) {
 					that._trigger( "change", event, { item: item } );
-				}			
-		
+				}
+
 				that.close( event );
 			},
 			focus: function( event, ui ) {
@@ -185,7 +185,7 @@ $.widget( "ui.selectmenu", {
 
 	_refresh: function() {
 		var options = this.element.find( "option" ),
-			item;			
+			item;
 
 		if ( !options.length ) {
 			return;
@@ -367,7 +367,7 @@ $.widget( "ui.selectmenu", {
 		},
 		change: function( event ) {
 			var item = this.items[ this.element[ 0 ].selectedIndex ];
-			
+
 			this._select( item, event );
 			this._trigger( "change", event, { item: item } );
 		},

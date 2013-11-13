@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Selectmenu - Default functionality</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.10.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.position.js"></script>
+	<script src="../../ui/jquery.ui.menu.js"></script>
+	<script src="../../ui/jquery.ui.selectmenu.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<script>
+	$(function() {
+		$( "#width-auto, #width-auto2" ).selectmenu();
+
+		$( "#width-css, #width-css2" ).selectmenu();
+
+		$( "#width-js, #width-js2" ).selectmenu({
+			width: 200
+		});
+		
+		var fixedMenuWidth = $( "#width-cssmenu" ).selectmenu(),
+			fixedMenuWidth2 = $( "#width-cssmenu2" ).selectmenu();
+			
+		fixedMenuWidth.selectmenu( "menuWidget" ).addClass( "fixed-menu-width" );
+		fixedMenuWidth2.selectmenu( "menuWidget" ).addClass( "fixed-menu-width" );
+	});
+	</script>
+	<style>
+		fieldset {
+			border: 0;
+		}
+		label {
+			display: block;
+			margin: 30px 0 0 0;
+		}
+
+		#width-css,
+		#width-css2,
+		#width-cssmenu,
+		#width-cssmenu2 {
+			width: 200px;
+		}
+		
+		.fixed-menu-width {
+			width: 400px;
+		}
+	</style>
+</head>
+<body>
+
+<div class="demo">
+
+<form action="#">
+
+	<fieldset>
+		<label for="width-auto">Auto width</label>
+		<select name="width-auto" id="width-auto">
+			<option value="jquery">jQuery.js</option>
+			<option value="jqueryui">ui.jQuery.js</option>
+			<option value="somefile">Some unknown file</option>
+			<option value="someotherfile">Some other file with a very long option text</option>
+		</select>
+		<label for="width-auto2">Auto width (no long option)</label>
+		<select name="width-auto2" id="width-auto2">
+			<option value="jquery">jQuery.js</option>
+			<option value="jqueryui">ui.jQuery.js</option>
+			<option value="somefile">Some unknown file</option>
+			<option value="someotherfile">Some other file</option>
+		</select>
+
+		<label for="width-css">CSS width</label>
+		<select name="width-css" id="width-css">
+			<option value="jquery">jQuery.js</option>
+			<option value="jqueryui">ui.jQuery.js</option>
+			<option value="somefile">Some unknown file</option>
+			<option value="someotherfile">Some other file with a very long option text</option>
+		</select>
+
+		<label for="width-css2">CSS width (no long option)</label>
+		<select name="width-css2" id="width-css2">
+			<option value="jquery">jQuery.js</option>
+			<option value="jqueryui">ui.jQuery.js</option>
+			<option value="somefile">Some unknown file</option>
+			<option value="someotherfile">Some other file</option>
+		</select>
+
+		<label for="width-js">JS width</label>
+		<select name="width-js" id="width-js">
+			<option value="jquery">jQuery.js</option>
+			<option value="jqueryui">ui.jQuery.js</option>
+			<option value="somefile">Some unknown file</option>
+			<option value="someotherfile">Some other file with a very long option text</option>
+		</select>
+		<label for="width-js2">JS width (no long option)</label>
+		<select name="width-js2" id="width-js2">
+			<option value="jquery">jQuery.js</option>
+			<option value="jqueryui">ui.jQuery.js</option>
+			<option value="somefile">Some unknown file</option>
+			<option value="someotherfile">Some other file</option>
+		</select>
+
+		<label for="width-cssmenu">CSS width for button and menu</label>
+		<select name="width-cssmenu" id="width-cssmenu">
+			<option value="jquery">jQuery.js</option>
+			<option value="jqueryui">ui.jQuery.js</option>
+			<option value="somefile">Some unknown file</option>
+			<option value="someotherfile">Some other file with a very long option text</option>
+		</select>
+		<label for="width-cssmenu2">CSS width for button and menu (no long option)</label>
+		<select name="width-cssmenu2" id="width-cssmenu2">
+			<option value="jquery">jQuery.js</option>
+			<option value="jqueryui">ui.jQuery.js</option>
+			<option value="somefile">Some unknown file</option>
+			<option value="someotherfile">Some other file</option>
+		</select>
+	</fieldset>
+
+</form>
+
+</div>
+
+<div class="demo-description">
+<p>Width option demo. Take a look at the source code to see how the width is set.</p>
+</div>
+</body>
+</html>
