@@ -227,7 +227,7 @@ $.widget( "ui.selectmenu", {
 		this._trigger( "open", event );
 	},
 
-	_openMenu: function( event ) {
+	_openMenu: function() {
 		// If this is the first time the menu is being opened, render the items
 		if ( !this.menuItems ) {
 			this._refresh();
