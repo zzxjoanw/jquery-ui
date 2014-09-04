@@ -73,14 +73,8 @@ widget = $.widget( "ui.datepicker", {
 
 	_getCreateOptions: function() {
 		return {
-			max: Globalize.parseDate(
-					this.element.attr( "max" ),
-					{ pattern: "yyyy-MM-dd" }
-				),
-			min: Globalize.parseDate(
-					this.element.attr( "min" ),
-					{ pattern: "yyyy-MM-dd" }
-				)
+			max: this.element.attr( "max" ),
+			min: this.element.attr( "min" )
 		};
 	},
 
