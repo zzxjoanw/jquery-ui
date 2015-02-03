@@ -184,7 +184,7 @@ $.widget("ui.resizable", $.ui.mouse, {
 
 				axis.css({ zIndex: o.zIndex });
 
-				// TODO : What's going on here?
+				// We only add the grip icon to the se corner if se is one of the handles
 				if ("se" === handle) {
 					this._addClass( axis, null, "ui-icon ui-icon-gripsmall-diagonal-se" );
 				}
@@ -1079,7 +1079,14 @@ $.ui.plugin.add("resizable", "ghost", {
 			left: 0,
 			top: 0
 		});
-		this._addClass( that.ghost, "ui-resizable-ghost" );
+		that._addClass( that.ghost, "ui-resizable-ghost" );
+
+		// DEPRECATED TODO: remove after 1.12
+		if ( $.uiBackCompat !== false && typeof that.options.ghost === "string" ) {
+
+			// Ghost option
+			that.ghost.addClass( this.options.ghost );
+		}
 
 		that.ghost.appendTo(that.helper);
 
@@ -1178,13 +1185,6 @@ $.ui.plugin.add("resizable", "grid", {
 	}
 
 });
-
-// DEPRECATED
-if ( $.uiBackCompat !== false ) {
-
-	// Ghost option
-	// TODO add backcompat once i know how $.ui.plugin works...
-}
 
 return $.ui.resizable;
 
